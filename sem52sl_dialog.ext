@@ -1,0 +1,142 @@
+#define SCALE 1.6
+//#include "\tfw_sem52sl\description.h"
+
+private = _display;
+_display = _this select 0;
+
+class sem52sl_radio_dialog
+{
+	idd = IDD_SEM52SL_RADIO_DIALOG;
+	movingEnable = 1;
+	controlsBackground[] = { };
+	objects[] = { };
+	onUnload = "['OnRadioOpen', player, [player, TF_sw_dialog_radio, false, 'sem52sl_radio_dialog', false]] call TFAR_fnc_fireEventHandlers;";
+	onLoad = "if(sunOrMoon < 0.2)then{((_this select 0) displayCtrl TF_BACKGROUND_ID) ctrlSetText '\tfw_sem52sl\data\ui\sem52sl_ui_n.paa';}; uiNamespace setVariable ['sem52sl', _this select 0];";
+	controls[]=
+	{
+		background,
+		lcd,
+		enter,
+		edit,
+		channel_edit,
+		//prev_channel,
+		next_channel,
+		volume_Switch,
+		additional,
+		speakers
+	};
+
+	class background: RscBackPicture
+	{
+		idc = IDC_SEM52SL_BACKGROUND;
+		text = "\tfw_sem52sl\data\ui\sem52sl_ui.paa";
+		x=safeZoneX + safeZoneW - SCALE * SafeZoneH - 4/16 * safeZoneW;
+		y=SafeZoneY + SafeZoneH - SCALE * SafeZoneH;
+		w=SCALE * SafeZoneH;
+		h=SCALE * SafeZoneH*4/3;
+		moving = 1;
+		sizeEx=0.039999999;
+		//style="48+ 0x800";
+		style="48";
+	};
+	class lcd: RscBackPicture
+	{
+		idc = IDC_SEM52SL_LCD;
+		text = "\tfw_sem52sl\data\ui\sem52sl_display_ca.paa";
+		x=safeZoneX + safeZoneW - SCALE * SafeZoneH - 4/16 * safeZoneW;
+		y=SafeZoneY + SafeZoneH - SCALE * SafeZoneH;
+		w=SCALE * SafeZoneH;
+		h=SCALE * SafeZoneH*4/3;
+		moving = 1;
+		sizeEx=0.039999999;
+		//style="48+ 0x800";
+	};
+	class edit: RscSEMLCD
+	{
+		moving = 1;
+		idc = IDC_SEM52SL_EDIT;
+		x = 0.455 * safezoneW + safezoneX;
+		y = 0.536 * safezoneH + safezoneY;
+		w = 0.04425 * safezoneW;
+		h = 0.033 * safezoneH;
+		font = "tfw_font_lcd";
+		//sizeEx=0.039999999;
+		shadow = 0;
+		tooltip = $STR_current_freq;
+		canModify = 1;
+		fixedWidth = true;
+	};
+
+	class channel_edit: RscSEMLCD
+	{
+		moving = 1;
+		idc = IDC_SEM52SL_CHANNEL_EDIT;
+		//x = 0.427812 * safezoneW + safezoneX;
+		//x = 0.427812 * safezoneW + safezoneX;
+		x = 0.4262 * safezoneW + safezoneX;
+		y = 0.536 * safezoneH + safezoneY;
+		//w = 0.0257812 * safezoneW;
+		w = 0.029812 * safezoneW;
+		h = 0.033 * safezoneH;
+		font = "tfw_font_lcd";
+		//sizeEx=0.059999999;
+		shadow = 0;
+		tooltip = $STR_current_channel;
+		canModify = 0;
+	};
+
+	class enter: HiddenButton
+	{
+		idc = IDC_SEM52SL_ENTER;
+		x = 0.432969 * safezoneW + safezoneX;
+		y = 0.632 * safezoneH + safezoneY;
+		w = 0.061875 * safezoneW;
+		h = 0.033 * safezoneH;
+		tooltip = $STR_set_frequency;
+		action = "_f = parseNumber(ctrlText IDC_SEM52SL_RADIO_DIALOG_EDIT_ID);  if ((_f >= TF_MIN_SW_FREQ) and (_f <= TF_MAX_SW_FREQ)) then {[TF_sw_dialog_radio, str (round (_f * TF_FREQ_ROUND_POWER) / TF_FREQ_ROUND_POWER)] call TFAR_fnc_setSwFrequency; call TFAR_fnc_hideHint;} else {hint formatText [localize 'STR_incorrect_frequency', TF_MIN_SW_FREQ, TF_MAX_SW_FREQ]}; ['Pr%1'] call TFAR_fnc_updateSWDialogToChannel;";
+	};
+
+	class additional: HiddenButton
+	{
+		idc = IDC_SEM52SL_RADIO_DIALOG_ADDITIONAL;
+		x = 0.314375 * safezoneW + safezoneX;
+		y = 0.511 * safezoneH + safezoneY;
+		w = 0.0257812 * safezoneW;
+		h = 0.121 * safezoneH;
+		tooltip = $STR_set_additional;
+		action = "[TF_sw_dialog_radio, TF_sw_dialog_radio call TFAR_fnc_getSwChannel] call TFAR_fnc_setAdditionalSwChannel;['Pr%1'] call TFAR_fnc_updateSWDialogToChannel; [TF_sw_dialog_radio, false] call TFAR_fnc_ShowRadioInfo;";
+	};
+	class next_channel: HiddenRotator
+	{
+		idc = IDC_SEM52SL_NEXT;
+		x = 0.37625 * safezoneW + safezoneX;
+		y = 0.632 * safezoneH + safezoneY;
+		w = 0.04125 * safezoneW;
+		h = 0.033 * safezoneH;
+		tooltip = $STR_rotator_channel;
+		onMouseButtonDown ="[_this select 1, false] call TFW_fnc_setChannelViaDialog;";
+	};
+	
+	class speakers: HiddenButton
+	{
+		idc = IDC_SEM52SL_SPEAKERS;
+		x = 0.283437 * safezoneW + safezoneX;
+		y = 0.423 * safezoneH + safezoneY;
+		w = 0.0670312 * safezoneW;
+		h = 0.077 * safezoneH;
+		tooltip = $STR_speakers_settings_true;
+		action = "[TF_sw_dialog_radio] call TFAR_fnc_setSwSpeakers; [TF_sw_dialog_radio] call TFAR_fnc_ShowRadioSpeakers;";
+		//((uiNamespace getVariable 'sem52sl') displayCtrl TF_BACKGROUND_ID) ctrlSetText '\tfw_sem52sl\data\ui\sem52sl_speaker_ca.paa';
+	};
+
+	class volume_Switch: HiddenRotator
+	{
+		idc = IDC_SEM52SL_VOLUME;
+		x = 0.510312 * safezoneW + safezoneX;
+		y = 0.632 * safezoneH + safezoneY;
+		w = 0.04125 * safezoneW;
+		h = 0.033 * safezoneH;
+		tooltip = $STR_rotator_volume;
+		onMouseButtonDown = "[_this select 1, false] call TFW_fnc_setVolumeViaDialog;";
+	};
+};
